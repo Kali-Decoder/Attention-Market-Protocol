@@ -1,0 +1,22 @@
+[toolchain]
+package_manager = "npm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+attention_market_protocol = "GA8XxXazz9FLrWk13AudkFTRwwF3MD3CZoDKbq24Xs46"
+
+[programs.devnet]
+attention_market_protocol = "GA8XxXazz9FLrWk13AudkFTRwwF3MD3CZoDKbq24Xs46"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npm run test:anchor"
