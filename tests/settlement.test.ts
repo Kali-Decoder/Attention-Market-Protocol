@@ -8,6 +8,7 @@ import {
   ensureMarket,
   initializeMarket,
   fundedKeypair,
+  getProtocolAuthority,
   BetSide,
   BET_AMOUNT,
   Platform,
@@ -22,9 +23,13 @@ describe("settlement", () => {
   let overBettor: anchor.web3.Keypair;
   let underBettor: anchor.web3.Keypair;
 
-  before(async () => {
+  before(async function () {
     const deadline = new anchor.BN(Math.floor(Date.now() / 1000) + 86400);
     await ensureConfig(program, payer.publicKey, config);
+    const authority = await getProtocolAuthority(program, config);
+    if (!authority.equals(payer.publicKey)) {
+      this.skip();
+    }
     await ensureMarket(
       program,
       payer.publicKey,

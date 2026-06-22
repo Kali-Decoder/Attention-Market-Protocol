@@ -62,7 +62,7 @@ export function pdas(
 export async function fundedKeypair(
   connection: anchor.web3.Connection,
   payer: Keypair,
-  sol = 5
+  sol = 1
 ): Promise<Keypair> {
   const kp = Keypair.generate();
   const lamports = sol * LAMPORTS_PER_SOL;
@@ -101,6 +101,14 @@ export async function ensureConfig(
   if (!info) {
     await initializeConfig(program, authority, config);
   }
+}
+
+export async function getProtocolAuthority(
+  program: Program<AttentionMarketProtocol>,
+  config: PublicKey
+): Promise<PublicKey> {
+  const configAccount = await program.account.config.fetch(config);
+  return configAccount.authority;
 }
 
 export async function ensureMarket(

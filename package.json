@@ -4,6 +4,7 @@
   "scripts": {
     "test:anchor": "ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\"",
     "test:devnet": "ANCHOR_PROVIDER_URL=https://api.devnet.solana.com anchor test --skip-local-validator --provider.cluster devnet",
+    "test:happy": "anchor test",
     "deploy:devnet": "anchor build && anchor deploy --provider.cluster devnet",
     "seed:demo": "ts-mocha -p ./tsconfig.json -t 60000 scripts/seed-demo-markets.ts",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",

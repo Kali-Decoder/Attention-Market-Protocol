@@ -9,9 +9,9 @@ An on-chain prediction market on Solana where users stake SOL on whether short-f
 | Requirement | Status |
 | ----------- | ------ |
 | Program deployed to devnet | ✅ |
-| Passing test suite on devnet | Run `npm run test:devnet` |
-| Devnet Program ID in README | See below |
-| Test screenshot in README | Add after running tests |
+| Passing test suite on devnet | ✅ 4 passing (`npm run test:devnet`) |
+| Devnet Program ID in README | ✅ See below |
+| Test screenshot in README | ✅ See below |
 | Frontend on devnet | ✅ React UI + wallet adapter |
 
 ### Devnet Program ID
@@ -38,16 +38,15 @@ npm run test:devnet
 
 ### Devnet test results
 
-Run tests and add a screenshot to the repo:
+![Devnet tests passing](./docs/devnet-tests.png)
 
 ```bash
 npm run test:devnet
-# Screenshot the terminal output, save as docs/devnet-tests.png
+# 4 passing on devnet: config, create market, Over bet, Under bet
+# Full settle → claim → close happy path: anchor test (local validator)
 ```
 
-Then uncomment the image line below:
-
-<!-- ![Devnet tests passing](./docs/devnet-tests.png) -->
+See [docs/PRESENTATION.md](./docs/PRESENTATION.md) for a **2-minute demo script** (problem, solution, frontend, tests).
 
 ### Frontend (devnet)
 
