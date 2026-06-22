@@ -16,7 +16,7 @@ import {
 
 describe("settlement", () => {
   const { program, payer, connection } = setupProvider();
-  const contentId = `reel-settlement-test-${Date.now()}`;
+  const contentId = `settle-${Date.now().toString(36)}`;
   const { config, market, vault, bet } = pdas(program, contentId);
 
   let overBettor: anchor.web3.Keypair;

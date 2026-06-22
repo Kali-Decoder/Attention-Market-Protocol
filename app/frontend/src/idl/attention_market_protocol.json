@@ -1,5 +1,5 @@
 {
-  "address": "4BD12VMRQiPgG8dtvW2BaMgZW2QiVzG9CESRHGGP9u1j",
+  "address": "Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq",
   "metadata": {
     "name": "attention_market_protocol",
     "version": "0.1.0",
@@ -239,6 +239,7 @@
         },
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {

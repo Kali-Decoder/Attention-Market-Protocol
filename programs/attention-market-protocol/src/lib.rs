@@ -10,7 +10,7 @@ pub use errors::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("GA8XxXazz9FLrWk13AudkFTRwwF3MD3CZoDKbq24Xs46");
+declare_id!("Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq");
 
 #[program]
 pub mod attention_market_protocol {

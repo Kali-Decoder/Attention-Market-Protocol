@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from 'react'
+import { createContext, useContext, useCallback, type ReactNode } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 
@@ -23,37 +23,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const wallet = useWallet()
   const { setVisible } = useWalletModal()
 
-  const connectWallet = async () => {
+  const connectWallet = useCallback(async () => {
     setVisible(true)
-  }
+  }, [setVisible])
 
-  const disconnectWallet = async () => {
+  const disconnectWallet = useCallback(async () => {
     await wallet.disconnect()
-  }
+  }, [wallet])
 
-  const account: string | null = wallet.publicKey?.toBase58() ?? null
-  const isConnected = !!account
-  const loginType: 'wallet' | null = wallet.connected ? 'wallet' : null
+  const account = wallet.publicKey?.toBase58() ?? null
+  const isConnected = wallet.connected && !!account
+  const loginType: 'wallet' | null = isConnected ? 'wallet' : null
 
   const disconnect = () => {
-    disconnectWallet()
+    void disconnectWallet()
   }
 
   return (
-    <AuthContext.Provider value={{
-      account,
-      isConnected,
-      loginType,
-      connectWallet,
-      disconnectWallet,
-      disconnect,
-      walletAccount: account,
-      keylessAccount: null,
-      isWalletConnected: wallet.connected,
-      isKeylessConnected: false,
-      isRestoringSession: false,
-      disconnectKeylessAccount: () => {},
-    }}>
+    <AuthContext.Provider
+      value={{
+        account,
+        isConnected,
+        loginType,
+        connectWallet,
+        disconnectWallet,
+        disconnect,
+        walletAccount: account,
+        keylessAccount: null,
+        isWalletConnected: wallet.connected,
+        isKeylessConnected: false,
+        isRestoringSession: wallet.connecting,
+        disconnectKeylessAccount: () => {},
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -65,4 +67,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
-} 
+}

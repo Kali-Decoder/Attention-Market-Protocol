@@ -1,12 +1,19 @@
-import { AnchorProvider, BN, Program, web3 } from '@coral-xyz/anchor'
+import { AnchorProvider, BN, Program } from '@coral-xyz/anchor'
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js'
-import type { WalletContextState } from '@solana/wallet-adapter-react'
+import type { AnchorWallet } from '@solana/wallet-adapter-react'
 import idl from '../idl/attention_market_protocol.json'
 import { DEMO_MARKETS } from './demoMarkets'
 
 const PROGRAM_ID = new PublicKey(
-  process.env.PUBLIC_PROGRAM_ID || 'GA8XxXazz9FLrWk13AudkFTRwwF3MD3CZoDKbq24Xs46',
+  (idl as { address: string }).address ||
+    process.env.PUBLIC_PROGRAM_ID ||
+    'Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq',
 )
+
+export type SolanaClient = {
+  connection: Connection
+  wallet: AnchorWallet
+}
 
 export type Platform = 'instagram' | 'tikTok' | 'youTube'
 export type BetSide = 'over' | 'under'
@@ -35,7 +42,32 @@ export type BetAccount = {
   claimed: boolean
 }
 
-type WalletLike = WalletContextState & { connection: Connection }
+function getProvider(connection: Connection, wallet?: AnchorWallet) {
+  const signer =
+    wallet ??
+    ({
+      publicKey: PublicKey.default,
+      signTransaction: async () => {
+        throw new Error('Wallet required')
+      },
+      signAllTransactions: async () => {
+        throw new Error('Wallet required')
+      },
+    } as AnchorWallet)
+
+  return new AnchorProvider(connection, signer, { commitment: 'confirmed' })
+}
+
+export function getReadOnlyProgram(connection: Connection) {
+  return new Program(idl as any, getProvider(connection))
+}
+
+export function getProgram(client: SolanaClient) {
+  if (!client.wallet?.publicKey) {
+    throw new Error('Wallet not connected')
+  }
+  return new Program(idl as any, getProvider(client.connection, client.wallet))
+}
 
 function toPlatformEnum(platform: Platform) {
   if (platform === 'instagram') return { instagram: {} }
@@ -90,32 +122,6 @@ function mapBet(a: { publicKey: PublicKey; account: any }): BetAccount {
     amount: a.account.amount,
     claimed: a.account.claimed,
   }
-}
-
-export function getReadOnlyProgram(connection: Connection) {
-  const provider = new AnchorProvider(
-    connection,
-    {
-      publicKey: PublicKey.default,
-      signTransaction: async () => {
-        throw new Error('Wallet required')
-      },
-      signAllTransactions: async () => {
-        throw new Error('Wallet required')
-      },
-    } as AnchorProvider['wallet'],
-    { commitment: 'confirmed' },
-  )
-  return new Program(idl as any, PROGRAM_ID, provider)
-}
-
-export function getProgram(wallet: WalletLike) {
-  const provider = new AnchorProvider(
-    wallet.connection,
-    wallet as unknown as AnchorProvider['wallet'],
-    { commitment: 'confirmed' },
-  )
-  return new Program(idl as any, PROGRAM_ID, provider)
 }
 
 export function getConfigPda() {
@@ -196,13 +202,13 @@ export async function configExists(connection: Connection): Promise<boolean> {
   return info !== null
 }
 
-export async function initializeConfig(wallet: WalletLike, feeBps = 200) {
-  const program = getProgram(wallet)
+export async function initializeConfig(client: SolanaClient, feeBps = 200) {
+  const program = getProgram(client)
   const config = getConfigPda()
   await program.methods
     .initializeConfig(feeBps)
     .accountsPartial({
-      authority: wallet.publicKey!,
+      authority: client.wallet.publicKey,
       config,
       systemProgram: SystemProgram.programId,
     })
@@ -210,10 +216,10 @@ export async function initializeConfig(wallet: WalletLike, feeBps = 200) {
 }
 
 export async function initializeMarket(
-  wallet: WalletLike,
+  client: SolanaClient,
   input: { contentId: string; platform: Platform; threshold: number; deadlineUnix: number },
 ) {
-  const program = getProgram(wallet)
+  const program = getProgram(client)
   const config = getConfigPda()
   const market = getMarketPda(input.contentId, input.platform)
   const vault = getVaultPda(market)
@@ -225,7 +231,7 @@ export async function initializeMarket(
       new BN(input.deadlineUnix),
     )
     .accountsPartial({
-      creator: wallet.publicKey!,
+      creator: client.wallet.publicKey,
       config,
       market,
       vault,
@@ -235,16 +241,16 @@ export async function initializeMarket(
 }
 
 export async function placeBet(
-  wallet: WalletLike,
+  client: SolanaClient,
   input: { market: PublicKey; side: BetSide; lamports: number },
 ) {
-  const program = getProgram(wallet)
-  const bet = getBetPda(input.market, wallet.publicKey!)
+  const program = getProgram(client)
+  const bet = getBetPda(input.market, client.wallet.publicKey)
   const vault = getVaultPda(input.market)
   await program.methods
     .placeBet(toBetSideEnum(input.side), new BN(input.lamports))
     .accountsPartial({
-      user: wallet.publicKey!,
+      user: client.wallet.publicKey,
       market: input.market,
       bet,
       vault,
@@ -253,15 +259,15 @@ export async function placeBet(
     .rpc()
 }
 
-export async function claimReward(wallet: WalletLike, market: PublicKey) {
-  const program = getProgram(wallet)
+export async function claimReward(client: SolanaClient, market: PublicKey) {
+  const program = getProgram(client)
   const config = getConfigPda()
-  const bet = getBetPda(market, wallet.publicKey!)
+  const bet = getBetPda(market, client.wallet.publicKey)
   const vault = getVaultPda(market)
   await program.methods
     .claimReward()
     .accountsPartial({
-      user: wallet.publicKey!,
+      user: client.wallet.publicKey,
       config,
       market,
       bet,
@@ -271,19 +277,19 @@ export async function claimReward(wallet: WalletLike, market: PublicKey) {
     .rpc()
 }
 
-export async function seedDemoMarkets(wallet: WalletLike) {
-  const exists = await configExists(wallet.connection)
+export async function seedDemoMarkets(client: SolanaClient) {
+  const exists = await configExists(client.connection)
   if (!exists) {
-    await initializeConfig(wallet)
+    await initializeConfig(client)
   }
 
   for (const demo of DEMO_MARKETS) {
     const address = getMarketPda(demo.contentId, demo.platform)
-    const info = await wallet.connection.getAccountInfo(address)
+    const info = await client.connection.getAccountInfo(address)
     if (info) continue
 
     const deadlineUnix = Math.floor(Date.now() / 1000) + demo.deadlineHours * 3600
-    await initializeMarket(wallet, {
+    await initializeMarket(client, {
       contentId: demo.contentId,
       platform: demo.platform,
       threshold: demo.threshold,

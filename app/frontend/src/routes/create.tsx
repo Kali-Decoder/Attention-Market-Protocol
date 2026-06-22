@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useWallet, useConnection } from '@solana/wallet-adapter-react'
+import { useWallet, useConnection, useAnchorWallet } from '@solana/wallet-adapter-react'
 import toast from 'react-hot-toast'
 import { CheckCircle2, Loader2, Rocket, Database } from 'lucide-react'
 import { useAuth } from '../contexts/authContext'
@@ -15,18 +15,19 @@ export const Route = createFileRoute('/create')({
 function CreatePage() {
   const { isConnected, connectWallet } = useAuth()
   const wallet = useWallet()
+  const anchorWallet = useAnchorWallet()
   const { connection } = useConnection()
   const [loading, setLoading] = useState(false)
   const [seeded, setSeeded] = useState(false)
 
   const seed = async () => {
-    if (!wallet.connected) {
+    if (!wallet.connected || !anchorWallet) {
       connectWallet()
       return
     }
     setLoading(true)
     try {
-      await seedDemoMarkets({ ...wallet, connection } as any)
+      await seedDemoMarkets({ connection, wallet: anchorWallet })
       setSeeded(true)
       toast.success('Demo markets seeded on-chain!')
     } catch (e: any) {

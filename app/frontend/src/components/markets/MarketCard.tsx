@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowUpRight, Clock, TrendingUp } from 'lucide-react'
+import { ArrowUpRight, Clock, Eye, TrendingUp } from 'lucide-react'
 import type { EnrichedMarket } from '@/hooks/useMarkets'
+import { useDemoEngagement } from '@/hooks/useDemoEngagement'
 import { formatCount, formatSol, timeRemaining } from '@/lib/format'
 import { platformToParam } from '@/lib/demoMarkets'
 import { PlatformBadge } from './PlatformBadge'
@@ -14,6 +15,10 @@ export function MarketCard({ market }: Props) {
   const { onChain, demo } = market
   const isOpen = onChain.status === 'open'
   const totalPool = onChain.totalOver.add(onChain.totalUnder)
+  const engagement = useDemoEngagement(demo.contentId, demo.platform, demo.threshold, {
+    isLive: isOpen,
+    settledValue: onChain.finalEngagement.toNumber(),
+  })
 
   return (
     <Link
@@ -44,8 +49,12 @@ export function MarketCard({ market }: Props) {
 
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5 text-gray-300">
+            <Eye className="w-4 h-4 text-sky-400" />
+            <span>{formatCount(engagement.current)} {demo.engagementLabel}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-gray-300">
             <TrendingUp className="w-4 h-4 text-purple-400" />
-            <span>{formatCount(onChain.engagementThreshold.toNumber())} {demo.engagementLabel}</span>
+            <span>Target {formatCount(demo.threshold)}</span>
           </div>
           <div className="flex items-center gap-1.5 text-gray-300">
             <Clock className="w-4 h-4 text-amber-400" />

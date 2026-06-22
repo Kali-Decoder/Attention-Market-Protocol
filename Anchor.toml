@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-attention_market_protocol = "GA8XxXazz9FLrWk13AudkFTRwwF3MD3CZoDKbq24Xs46"
+attention_market_protocol = "Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq"
 
 [programs.devnet]
-attention_market_protocol = "GA8XxXazz9FLrWk13AudkFTRwwF3MD3CZoDKbq24Xs46"
+attention_market_protocol = "Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq"
 
 [registry]
 url = "https://api.apr.dev"

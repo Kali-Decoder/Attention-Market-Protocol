@@ -1,15 +1,17 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useCallback, useEffect, useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { ArrowLeft, Loader2, Target, Users } from 'lucide-react'
+import { ArrowLeft, Eye, Loader2, Target, Users } from 'lucide-react'
 import { useAuth } from '@/contexts/authContext'
 import { getDemoMeta, platformFromParam } from '@/lib/demoMarkets'
 import { fetchMarket, fetchUserBet } from '@/lib/solana'
 import type { BetAccount, MarketAccount } from '@/lib/solana'
 import { formatCount, formatDeadline, formatSol, timeRemaining } from '@/lib/format'
+import { useDemoEngagement } from '@/hooks/useDemoEngagement'
 import { PlatformBadge } from '@/components/markets/PlatformBadge'
 import { PoolBar } from '@/components/markets/PoolBar'
 import { BetPanel } from '@/components/markets/BetPanel'
+import { EngagementMeter } from '@/components/markets/EngagementMeter'
 
 export const Route = createFileRoute('/markets/$platform/$contentId')({
   component: MarketDetailPage,
@@ -48,6 +50,11 @@ function MarketDetailPage() {
     const id = setInterval(load, 10_000)
     return () => clearInterval(id)
   }, [load])
+
+  const engagement = useDemoEngagement(contentId, platform, demo?.threshold ?? 0, {
+    isLive: market?.status === 'open',
+    settledValue: market?.finalEngagement.toNumber() ?? 0,
+  })
 
   if (!demo) {
     return (
@@ -105,6 +112,12 @@ function MarketDetailPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
+                icon={<Eye className="w-4 h-4 text-sky-400" />}
+                label={`Live ${demo.engagementLabel}`}
+                value={formatCount(engagement.current)}
+                highlight
+              />
+              <StatCard
                 icon={<Target className="w-4 h-4 text-purple-400" />}
                 label="Target"
                 value={`${formatCount(market.engagementThreshold.toNumber())} ${demo.engagementLabel}`}
@@ -119,12 +132,9 @@ function MarketDetailPage() {
                 value={timeRemaining(market.deadline)}
                 sub={formatDeadline(market.deadline)}
               />
-              <StatCard
-                label="Status"
-                value={market.status.charAt(0).toUpperCase() + market.status.slice(1)}
-                highlight={market.status === 'open'}
-              />
             </div>
+
+            <EngagementMeter engagement={engagement} label={demo.engagementLabel} />
 
             <div className="rounded-2xl border border-[#2f2f35] bg-[#1c1c20] p-6">
               <h3 className="font-semibold mb-4">Pool distribution</h3>

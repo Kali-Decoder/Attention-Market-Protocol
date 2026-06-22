@@ -6,7 +6,7 @@ interface SidebarProps {
 }
 
 const nav = [
-  { to: '/', label: 'Markets', icon: LayoutGrid },
+  { to: '/', label: 'Live Markets', icon: LayoutGrid },
   { to: '/my-bets', label: 'My Bets', icon: Ticket },
   { to: '/create', label: 'Demo Setup', icon: PlusCircle },
   { to: '/wallet', label: 'Wallet', icon: Wallet },
@@ -14,9 +14,11 @@ const nav = [
 
 export function Sidebar({ isExpanded }: SidebarProps) {
   return (
-    <aside className={`relative flex flex-col bg-[#1f1f23] border-r transition-all duration-300 border border-[#2f2f35] ${isExpanded ? 'w-64' : 'w-0'} mt-16 h-[calc(100vh-64px)]`}>
+    <aside
+      className={`sticky top-0 shrink-0 flex flex-col bg-[#1f1f23] border-r border-[#2f2f35] transition-all duration-300 h-full overflow-hidden ${isExpanded ? 'w-64' : 'w-0'}`}
+    >
       {isExpanded && (
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="p-4 h-full overflow-hidden">
           <h2 className="text-xs text-[#adadb8] font-bold uppercase mb-3">Reelify</h2>
           <ul className="space-y-1">
             {nav.map(({ to, label, icon: Icon }) => (

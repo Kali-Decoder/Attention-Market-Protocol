@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useWallet, useConnection } from '@solana/wallet-adapter-react'
+import { useWallet, useConnection, useAnchorWallet } from '@solana/wallet-adapter-react'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import toast from 'react-hot-toast'
 import { ArrowDown, ArrowUp, Loader2 } from 'lucide-react'
@@ -17,6 +17,7 @@ type Props = {
 
 export function BetPanel({ market, userBet, onSuccess, onConnect }: Props) {
   const wallet = useWallet()
+  const anchorWallet = useAnchorWallet()
   const { connection } = useConnection()
   const [side, setSide] = useState<BetSide>('over')
   const [amount, setAmount] = useState('0.1')
@@ -33,7 +34,7 @@ export function BetPanel({ market, userBet, onSuccess, onConnect }: Props) {
     userBet.side === market.outcome
 
   const place = async () => {
-    if (!wallet.connected || !wallet.publicKey) {
+    if (!wallet.connected || !anchorWallet) {
       onConnect()
       return
     }
@@ -45,7 +46,7 @@ export function BetPanel({ market, userBet, onSuccess, onConnect }: Props) {
 
     setLoading(true)
     try {
-      await placeBet({ ...wallet, connection } as any, {
+      await placeBet({ connection, wallet: anchorWallet }, {
         market: market.publicKey,
         side,
         lamports,
@@ -60,10 +61,10 @@ export function BetPanel({ market, userBet, onSuccess, onConnect }: Props) {
   }
 
   const claim = async () => {
-    if (!wallet.connected) return
+    if (!wallet.connected || !anchorWallet) return
     setLoading(true)
     try {
-      await claimReward({ ...wallet, connection } as any, market.publicKey)
+      await claimReward({ connection, wallet: anchorWallet }, market.publicKey)
       toast.success('Reward claimed!')
       onSuccess()
     } catch (e: any) {

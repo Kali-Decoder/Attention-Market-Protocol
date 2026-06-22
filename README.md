@@ -2,7 +2,65 @@
 
 An on-chain prediction market on Solana where users stake SOL on whether short-form content will finish **over** or **under** an engagement threshold by a deadline. Markets cover Instagram Reels, TikToks, and YouTube Shorts.
 
-Reelify v1 is a single Anchor program with SOL-only escrow. Off-chain services (engagement fetcher, settlement oracle, frontend) are planned but not yet implemented.
+---
+
+## Capstone Submission
+
+| Requirement | Status |
+| ----------- | ------ |
+| Program deployed to devnet | ✅ |
+| Passing test suite on devnet | Run `npm run test:devnet` |
+| Devnet Program ID in README | See below |
+| Test screenshot in README | Add after running tests |
+| Frontend on devnet | ✅ React UI + wallet adapter |
+
+### Devnet Program ID
+
+```
+Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq
+```
+
+Explorer: https://explorer.solana.com/address/Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq?cluster=devnet
+
+### Deploy & test on devnet
+
+```bash
+# 1. Point Solana CLI at devnet and fund wallet
+solana config set --url devnet
+solana airdrop 2   # repeat if needed
+
+# 2. Build and deploy
+npm run deploy:devnet
+
+# 3. Run full test suite against devnet
+npm run test:devnet
+```
+
+### Devnet test results
+
+Run tests and add a screenshot to the repo:
+
+```bash
+npm run test:devnet
+# Screenshot the terminal output, save as docs/devnet-tests.png
+```
+
+Then uncomment the image line below:
+
+<!-- ![Devnet tests passing](./docs/devnet-tests.png) -->
+
+### Frontend (devnet)
+
+```bash
+cd app/frontend
+cp .env.exmaple .env.local   # already points at devnet
+npm install
+npm run dev
+```
+
+1. Connect Phantom/Solflare (network: **Devnet**)
+2. Go to **Demo Setup** → **Seed all demo markets**
+3. Browse markets → place Over/Under bets with devnet SOL
 
 ---
 
@@ -78,7 +136,7 @@ attention-market-protocol/
 │   ├── betting.test.ts         # place_bet flows
 │   └── settlement.test.ts      # settle, claim, close
 ├── app/
-│   ├── frontend/               # React frontend (placeholder)
+│   ├── frontend/               # React frontend (Solana wallet + bet UI)
 │   └── api/                    # engagement-fetcher, settlement-service (placeholder)
 ├── docs/
 │   ├── architecture.md         # Full protocol architecture
@@ -149,7 +207,7 @@ yarn lint:fix    # auto-fix with Prettier
 
 ## Program
 
-**Program ID (localnet):** `4BD12VMRQiPgG8dtvW2BaMgZW2QiVzG9CESRHGGP9u1j`
+**Program ID (devnet):** `Ex4u9eFj65N9SQ1o5yCCCHuBuTPbhcnfEGi6W5tWuoq`
 
 Configured in `Anchor.toml` and `programs/attention-market-protocol/src/lib.rs`.
 
@@ -233,8 +291,11 @@ The test suite covers the full market lifecycle:
 Shared helpers in `tests/helpers.ts` provide PDA derivation, config bootstrap, and funded keypair utilities.
 
 ```bash
-# Run full suite (starts validator + deploys)
+# Local (starts validator + deploys)
 anchor test
+
+# Devnet (program must already be deployed)
+npm run test:devnet
 
 # Run a single file (validator must already be running)
 yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/market.test.ts
@@ -283,7 +344,7 @@ See `tests/helpers.ts` for complete PDA derivation and instruction examples.
 ## Roadmap
 
 - [ ] Engagement oracle integration (Instagram / TikTok / YouTube APIs)
-- [ ] Frontend with Solana wallet adapter (Phantom, Solflare)
+- [x] Frontend with Solana wallet adapter (Phantom, Solflare)
 - [ ] SPL token support for betting
 - [ ] Market discovery indexing (Helius / custom indexer)
 - [ ] Multi-oracle settlement registry
