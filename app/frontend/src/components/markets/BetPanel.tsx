@@ -4,7 +4,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import toast from 'react-hot-toast'
 import { ArrowDown, ArrowUp, Loader2 } from 'lucide-react'
 import type { BetAccount, BetSide, MarketAccount } from '../../lib/solana'
-import { claimReward, placeBet } from '../../lib/solana'
+import { claimReward, getUserBetStatus, placeBet, estimateBetPayout } from '../../lib/solana'
 import { formatSol } from '../../lib/format'
 import { cn } from '../../lib/utils'
 
@@ -32,6 +32,8 @@ export function BetPanel({ market, userBet, onSuccess, onConnect }: Props) {
     userBet &&
     !userBet.claimed &&
     userBet.side === market.outcome
+  const betStatus = userBet ? getUserBetStatus(userBet, market) : null
+  const estimatedPayout = userBet ? estimateBetPayout(userBet, market) : null
 
   const place = async () => {
     if (!wallet.connected || !anchorWallet) {
@@ -74,18 +76,45 @@ export function BetPanel({ market, userBet, onSuccess, onConnect }: Props) {
     }
   }
 
-  if (!isOpen && !canClaim) {
+  if (!isOpen && !canClaim && userBet) {
+    const lost = betStatus === 'lost'
+    const claimed = betStatus === 'won-claimed'
+
+    return (
+      <div className="rounded-2xl border border-[#2f2f35] bg-[#1c1c20] p-6 space-y-4">
+        <h3 className="text-lg font-semibold text-white">Your position</h3>
+        <div className="rounded-xl bg-[#252529] p-4 text-sm space-y-2">
+          <p className="text-gray-400">You bet</p>
+          <p className="text-white font-semibold text-lg">
+            {userBet.side.toUpperCase()} · {formatSol(userBet.amount)}
+          </p>
+          {lost && (
+            <p className="text-rose-400 font-medium">
+              Market settled {market.outcome?.toUpperCase()} — you did not win this round.
+            </p>
+          )}
+          {claimed && estimatedPayout && (
+            <p className="text-blue-300 font-medium">Claimed {formatSol(estimatedPayout)}</p>
+          )}
+          {isSettled && !lost && !claimed && (
+            <p className="text-gray-400">This market has settled.</p>
+          )}
+        </div>
+        {!isSettled && (
+          <p className="text-sm text-gray-500 text-center">
+            {market.status === 'closed' ? 'This market is closed.' : 'Betting is closed.'}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  if (!isOpen && !canClaim && !userBet) {
     return (
       <div className="rounded-2xl border border-[#2f2f35] bg-[#1c1c20] p-6 text-center">
         <p className="text-gray-400">
           {isSettled ? 'This market has settled. Betting is closed.' : 'This market is closed.'}
         </p>
-        {userBet && (
-          <p className="text-sm text-gray-500 mt-2">
-            Your position: {userBet.side.toUpperCase()} · {formatSol(userBet.amount)}
-            {userBet.claimed ? ' · Claimed' : ''}
-          </p>
-        )}
       </div>
     )
   }
@@ -97,22 +126,25 @@ export function BetPanel({ market, userBet, onSuccess, onConnect }: Props) {
       </h3>
 
       {userBet && (
-        <div className="rounded-xl bg-[#252529] p-4 text-sm">
+        <div className="rounded-xl bg-[#252529] p-4 text-sm space-y-1">
           <p className="text-gray-400">You bet</p>
           <p className="text-white font-semibold text-lg">
             {userBet.side.toUpperCase()} · {formatSol(userBet.amount)}
           </p>
+          {isOpen && (
+            <p className="text-emerald-400 text-xs">Position locked until settlement</p>
+          )}
         </div>
       )}
 
-      {canClaim && (
+      {canClaim && estimatedPayout && (
         <button
           onClick={claim}
           disabled={loading}
           className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-          Claim reward
+          Claim {formatSol(estimatedPayout)}
         </button>
       )}
 

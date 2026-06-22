@@ -9,7 +9,7 @@ type Props = {
 }
 
 export function EngagementMeter({ engagement, label, compact }: Props) {
-  const { current, threshold, progress, isOverTarget, isSimulated } = engagement
+  const { engagement: engagementValue, threshold, progress, isOverTarget, isSimulated } = engagement
 
   if (compact) {
     return (
@@ -17,7 +17,7 @@ export function EngagementMeter({ engagement, label, compact }: Props) {
         <div className="flex items-center justify-between text-xs">
           <span className="flex items-center gap-1 text-white/90">
             <Eye className="h-3.5 w-3.5 text-sky-300" />
-            {formatCount(current)} {label}
+            {formatCount(engagementValue)} {label}
           </span>
           <span className="text-white/50">/ {formatCount(threshold)}</span>
         </div>
@@ -46,7 +46,7 @@ export function EngagementMeter({ engagement, label, compact }: Props) {
       </div>
 
       <div className="flex items-end justify-between gap-2">
-        <p className="text-2xl font-bold text-white tabular-nums">{formatCount(current)}</p>
+        <p className="text-2xl font-bold text-white tabular-nums">{formatCount(engagementValue)}</p>
         <p className="text-sm text-gray-400 pb-1">
           target {formatCount(threshold)}
         </p>

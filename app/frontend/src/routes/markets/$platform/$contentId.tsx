@@ -114,7 +114,7 @@ function MarketDetailPage() {
               <StatCard
                 icon={<Eye className="w-4 h-4 text-sky-400" />}
                 label={`Live ${demo.engagementLabel}`}
-                value={formatCount(engagement.current)}
+                value={formatCount(engagement.engagement)}
                 highlight
               />
               <StatCard

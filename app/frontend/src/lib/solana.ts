@@ -176,10 +176,59 @@ export async function fetchUserBets(
   user: PublicKey,
 ): Promise<BetAccount[]> {
   const program = getReadOnlyProgram(connection)
-  const accounts = await program.account.bet.all([
-    { memcmp: { offset: 8 + 32, bytes: user.toBase58() } },
-  ])
-  return accounts.map(mapBet)
+
+  try {
+    const accounts = await program.account.bet.all([
+      { memcmp: { offset: 8 + 32, bytes: user.toBase58() } },
+    ])
+    if (accounts.length > 0) {
+      return accounts.map(mapBet)
+    }
+  } catch {
+    // Fall through to PDA lookup below.
+  }
+
+  const markets = await fetchMarkets(connection)
+  const bets = await Promise.all(
+    markets.map((market) => fetchUserBet(connection, market.publicKey, user)),
+  )
+  return bets.filter((b): b is BetAccount => b !== null)
+}
+
+export type UserBetStatus = 'active' | 'won-unclaimed' | 'won-claimed' | 'lost' | 'closed'
+
+export function getUserBetStatus(bet: BetAccount, market: MarketAccount): UserBetStatus {
+  if (market.status === 'open') return 'active'
+  if (market.status === 'settled') {
+    if (market.outcome !== bet.side) return 'lost'
+    return bet.claimed ? 'won-claimed' : 'won-unclaimed'
+  }
+  return 'closed'
+}
+
+const DEFAULT_FEE_BPS = 200
+
+/** Mirrors on-chain claim_reward payout math (2% fee on losing pool by default). */
+export function estimateBetPayout(
+  bet: BetAccount,
+  market: MarketAccount,
+  feeBps = DEFAULT_FEE_BPS,
+): BN {
+  if (market.status !== 'settled' || market.outcome !== bet.side) {
+    return new BN(0)
+  }
+
+  const winningPool = market.outcome === 'over' ? market.totalOver : market.totalUnder
+  const losingPool = market.outcome === 'over' ? market.totalUnder : market.totalOver
+
+  if (winningPool.isZero()) {
+    return bet.amount
+  }
+
+  const fee = losingPool.muln(feeBps).divn(10_000)
+  const distributable = losingPool.sub(fee)
+  const share = distributable.mul(bet.amount).div(winningPool)
+  return bet.amount.add(share)
 }
 
 export async function fetchUserBet(

@@ -50,11 +50,11 @@ export function MarketCard({ market }: Props) {
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5 text-gray-300">
             <Eye className="w-4 h-4 text-sky-400" />
-            <span>{formatCount(engagement.current)} {demo.engagementLabel}</span>
+            <span>{formatCount(engagement.views)} views</span>
           </div>
           <div className="flex items-center gap-1.5 text-gray-300">
             <TrendingUp className="w-4 h-4 text-purple-400" />
-            <span>Target {formatCount(demo.threshold)}</span>
+            <span>{formatCount(engagement.engagement)} {demo.engagementLabel}</span>
           </div>
           <div className="flex items-center gap-1.5 text-gray-300">
             <Clock className="w-4 h-4 text-amber-400" />

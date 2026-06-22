@@ -56,11 +56,11 @@ export function MarketReelSlide({ market, isActive }: Props) {
             <div className="flex flex-wrap gap-3 text-xs text-white/90">
               <span className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1">
                 <Eye className="h-3.5 w-3.5 text-sky-300" />
-                {formatCount(engagement.current)} {demo.engagementLabel}
+                {formatCount(engagement.views)} views
               </span>
               <span className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1">
                 <TrendingUp className="h-3.5 w-3.5 text-purple-300" />
-                Target {formatCount(demo.threshold)}
+                {formatCount(engagement.engagement)} {demo.engagementLabel}
               </span>
               <span className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1">
                 <Clock className="h-3.5 w-3.5 text-amber-300" />
@@ -120,7 +120,7 @@ export function MarketReelSlide({ market, isActive }: Props) {
             <Eye className="h-5 w-5 text-sky-300" />
           </div>
           <span className="mt-1 text-[10px] font-semibold text-white tabular-nums">
-            {formatCount(engagement.current)}
+            {formatCount(engagement.views)}
           </span>
         </div>
 
